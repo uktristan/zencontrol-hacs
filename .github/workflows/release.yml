@@ -16,15 +16,7 @@ jobs:
         
     - name: Create ZIP with correct structure
       run: |
-        # Create a temporary directory with correct structure
-        mkdir -p temp_zip_dir/custom_components/zencontrol
-        
-        # Copy all integration files
-        cp -r custom_components/zencontrol/* temp_zip_dir/custom_components/zencontrol/
-        
-        # Create the zip from the correct directory level
-        cd temp_zip_dir
-        zip -r ../zencontrol.zip .
+        zip -r zencontrol.zip custom_components/zencontrol/*
         
     - name: Verify ZIP structure
       run: |
