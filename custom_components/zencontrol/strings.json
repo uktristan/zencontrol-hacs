@@ -1,0 +1,36 @@
+{
+  "config": {
+    "abort": {
+      "single_instance_allowed": "Only one instance is allowed.",
+      "invalid_ports": "UDP and Multicast ports must be different",
+      "invalid_multicast": "Invalid multicast address (must be 224.0.0.0 - 239.255.255.255)",
+      "invalid_timeout": "Timeout must be between 5 and 300 seconds"
+    },
+    "step": {
+      "user": {
+        "title": "Configure ZenControl",
+        "description": "Set network parameters for ZenControl communication\n[Documentation]({docs_url})",
+        "data": {
+          "multicast_group": "Multicast Group",
+          "multicast_port": "Multicast Port",
+          "udp_port": "UDP Command Port",
+          "discovery_timeout": "Discovery Timeout (seconds)"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "ZenControl Options",
+        "description": "Adjust communication and discovery settings",
+        "data": {
+          "discovery_timeout": "Discovery Timeout (5-300s)",
+          "command_timeout": "Command Timeout (0.5-10s)",
+          "controller_timeout": "Controller Timeout (30-600s)",
+          "enable_debug_logging": "Enable Debug Logging"
+        }
+      }
+    }
+  }
+}
