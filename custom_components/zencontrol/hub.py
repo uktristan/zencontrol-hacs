@@ -3,7 +3,7 @@ import logging
 import json
 from typing import Dict, Optional, Callable, Any
 
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from .device_abstraction.comms.udp_protocol import ZenUDPProtocol
