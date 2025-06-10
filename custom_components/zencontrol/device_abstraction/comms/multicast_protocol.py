@@ -2,6 +2,7 @@ import asyncio
 import logging
 import socket
 import json
+from typing import List,Callable
 
 _LOGGER = logging.getLogger(__name__)
 
