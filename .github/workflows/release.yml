@@ -18,13 +18,7 @@ jobs:
       run: |
         cd custom_components/zencontrol
         zip -r zencontrol.zip ./
-        
-    - name: Verify ZIP structure
-      run: |
-        unzip -l zencontrol.zip
-        echo "Top-level contents:"
-        unzip -l zencontrol.zip | grep -v '/.*/' | head -20
-        
+
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
