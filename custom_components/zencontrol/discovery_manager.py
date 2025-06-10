@@ -3,6 +3,8 @@ import logging
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.core import HomeAssistant, callback
 
+from .const import DOMAIN
+
 _LOGGER = logging.getLogger(__name__)
 
 DISCOVERY_SIGNAL = "zencontrol_device_discovered"

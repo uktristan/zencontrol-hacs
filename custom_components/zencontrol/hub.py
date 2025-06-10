@@ -12,6 +12,8 @@ from .device_abstraction.controller import ZenControllerRegistry, ZenController
 from .device_abstraction.devices import ZenDevice, ZenLight, ZenSwitch, ZenSensor
 from .discovery_manager import DISCOVERY_SIGNAL
 
+from .const import DOMAIN
+
 _LOGGER = logging.getLogger(__name__)
 
 class ZenControlHub:

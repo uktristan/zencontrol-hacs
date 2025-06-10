@@ -9,14 +9,11 @@ from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers import config_validation as cv
 
-# Import config flow first to ensure DOMAIN is registered
+# Import const first to ensure DOMAIN is defined
+from .const import DOMAIN
 from .config_flow import ZenControlConfigFlow
 
-_LOGGER = logging.getLogger(__name__)
-
-DOMAIN = "zencontrol"
-
-# Default configuration values
+# Default values moved to const
 DEFAULT_MULTICAST_GROUP = "239.255.90.67"
 DEFAULT_MULTICAST_PORT = 5110
 DEFAULT_UDP_PORT = 5108
