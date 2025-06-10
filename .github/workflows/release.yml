@@ -3,7 +3,7 @@ name: Create Release
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*.*.*'
 
 jobs:
   build-release:
@@ -11,20 +11,32 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-      
-    - name: Set up Python
-      uses: actions/setup-python@v4
       with:
-        python-version: '3.10'
+        fetch-depth: 0
         
-    - name: Create ZIP
+    - name: Create ZIP with correct structure
       run: |
-        cd custom_components
-        zip -r ../zencontrol.zip zencontrol/*
+        # Create a temporary directory with correct structure
+        mkdir -p temp_zip_dir/custom_components/zencontrol
+        
+        # Copy all integration files
+        cp -r custom_components/zencontrol/* temp_zip_dir/custom_components/zencontrol/
+        
+        # Create the zip from the correct directory level
+        cd temp_zip_dir
+        zip -r ../zencontrol.zip .
+        
+    - name: Verify ZIP structure
+      run: |
+        unzip -l zencontrol.zip
+        echo "Top-level contents:"
+        unzip -l zencontrol.zip | grep -v '/.*/' | head -20
         
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
         files: zencontrol.zip
+        generate_release_notes: true
+        draft: false
       env:
         GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
