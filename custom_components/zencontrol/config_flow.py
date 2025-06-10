@@ -4,15 +4,9 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant import config_entries
 from homeassistant.core import callback
 
-from .const import DOMAIN
+from .const import DOMAIN, DEFAULT_MULTICAST_GROUP, DEFAULT_MULTICAST_PORT, DEFAULT_UDP_PORT, DEFAULT_DISCOVERY_TIMEOUT
 
 _LOGGER = logging.getLogger(__name__)
-
-# Default configuration values
-DEFAULT_MULTICAST_GROUP = "239.255.90.67"
-DEFAULT_MULTICAST_PORT = 5110
-DEFAULT_UDP_PORT = 5108
-DEFAULT_DISCOVERY_TIMEOUT = 30
 
 class ZenControlConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle a config flow for ZenControl."""
@@ -20,11 +14,16 @@ class ZenControlConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
     
+    def __init__(self):
+        """Initialize the config flow."""
+        self._user_input = {}
+        
     async def async_step_user(self, user_input=None):
         """Handle the initial step."""
         errors = {}
         
         if user_input is not None:
+            self._user_input = user_input
             # Validate inputs
             if not await self._validate_ports(user_input):
                 errors["base"] = "invalid_ports"
@@ -37,25 +36,33 @@ class ZenControlConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     data=user_input
                 )
         
-        # Show form with current values or defaults
+        # Use stored input or defaults for form values
+        defaults = self._user_input or {
+            "multicast_group": DEFAULT_MULTICAST_GROUP,
+            "multicast_port": DEFAULT_MULTICAST_PORT,
+            "udp_port": DEFAULT_UDP_PORT,
+            "discovery_timeout": DEFAULT_DISCOVERY_TIMEOUT
+        }
+        
+        # Show form with current values
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema({
                 vol.Required(
                     "multicast_group",
-                    default=self._get_default("multicast_group", DEFAULT_MULTICAST_GROUP)
+                    default=defaults["multicast_group"]
                 ): str,
                 vol.Required(
                     "multicast_port",
-                    default=self._get_default("multicast_port", DEFAULT_MULTICAST_PORT)
+                    default=defaults["multicast_port"]
                 ): cv.port,
                 vol.Required(
                     "udp_port",
-                    default=self._get_default("udp_port", DEFAULT_UDP_PORT)
+                    default=defaults["udp_port"]
                 ): cv.port,
                 vol.Optional(
                     "discovery_timeout",
-                    default=self._get_default("discovery_timeout", DEFAULT_DISCOVERY_TIMEOUT)
+                    default=defaults.get("discovery_timeout", DEFAULT_DISCOVERY_TIMEOUT)
                 ): vol.All(cv.positive_int, vol.Range(min=5, max=300)),
             }),
             errors=errors,
@@ -66,13 +73,9 @@ class ZenControlConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     
     async def async_step_import(self, import_config):
         """Handle import from YAML configuration."""
-        # Migrate YAML config to config entry
-        return await self.async_step_user(import_config)
-    
-    @staticmethod
-    def _get_default(key, default_value):
-        """Get default value maintaining existing settings."""
-        return lambda _: default_value
+        # Store imported config and show form to confirm
+        self._user_input = import_config
+        return await self.async_step_user()
     
     @staticmethod
     async def _validate_ports(user_input) -> bool:
@@ -118,22 +121,30 @@ class ZenControlOptionsFlow(config_entries.OptionsFlow):
                 return self.async_create_entry(title="", data=self.options)
             errors["base"] = "invalid_timeout"
             
+        # Set defaults from options or config entry
+        defaults = {
+            "discovery_timeout": self.options.get("discovery_timeout", 30),
+            "command_timeout": self.options.get("command_timeout", 2.0),
+            "controller_timeout": self.options.get("controller_timeout", 60),
+            "enable_debug_logging": self.options.get("enable_debug_logging", False)
+        }
+        
         options_schema = vol.Schema({
             vol.Required(
                 "discovery_timeout",
-                default=self.options.get("discovery_timeout", 30)
+                default=defaults["discovery_timeout"]
             ): vol.All(cv.positive_int, vol.Range(min=5, max=300)),
             vol.Required(
                 "command_timeout",
-                default=self.options.get("command_timeout", 2.0)
+                default=defaults["command_timeout"]
             ): vol.All(vol.Coerce(float), vol.Range(min=0.5, max=10.0)),
             vol.Required(
                 "controller_timeout",
-                default=self.options.get("controller_timeout", 60)
+                default=defaults["controller_timeout"]
             ): vol.All(cv.positive_int, vol.Range(min=30, max=600)),
             vol.Optional(
                 "enable_debug_logging",
-                default=self.options.get("enable_debug_logging", False)
+                default=defaults["enable_debug_logging"]
             ): bool,
         })
         
