@@ -16,7 +16,8 @@ jobs:
         
     - name: Create ZIP with correct structure
       run: |
-        zip -r zencontrol.zip custom_components/zencontrol/*
+        cd custom_components/zencontrol
+        zip -r zencontrol.zip ./
         
     - name: Verify ZIP structure
       run: |
