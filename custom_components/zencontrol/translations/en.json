@@ -1,0 +1,33 @@
+{
+  "config": {
+    "abort": {
+      "single_instance_allowed": "Only one instance is allowed."
+    },
+    "step": {
+      "user": {
+        "title": "Configure ZenControl",
+        "description": "Set network parameters for ZenControl communication",
+        "data": {
+          "multicast_group": "Multicast Group",
+          "multicast_port": "Multicast Port",
+          "udp_port": "UDP Command Port",
+          "discovery_timeout": "Discovery Timeout (seconds)"
+        }
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "ZenControl Options",
+        "description": "Adjust communication and discovery settings",
+        "data": {
+          "discovery_timeout": "Discovery Timeout",
+          "command_timeout": "Command Timeout (seconds)",
+          "controller_timeout": "Controller Timeout (seconds)",
+          "enable_debug_logging": "Enable Debug Logging"
+        }
+      }
+    }
+  }
+}

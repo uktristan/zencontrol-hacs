@@ -1,0 +1,9 @@
+# Core runtime dependencies
+cryptography>=42.0.0  # For future DTLS implementation
+
+# Development/testing dependencies
+homeassistant>=2025.1.0
+pytest==8.0.0
+pytest-asyncio==0.23.0
+pytest-homeassistant-custom-component==0.1.3
+asynctest==0.13.0

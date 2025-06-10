@@ -1,0 +1,28 @@
+discover_devices:
+  description: Start a new device discovery process
+  fields:
+    force_reset:
+      description: Clear existing devices before discovery
+      example: true
+      required: false
+      selector:
+        boolean
+
+device_command:
+  description: Send a command to a device
+  fields:
+    device_id:
+      description: ID of the target device
+      required: true
+      selector:
+        text
+    command:
+      description: Command to execute
+      required: true
+      selector:
+        text
+    params:
+      description: Command parameters
+      required: false
+      selector:
+        object
