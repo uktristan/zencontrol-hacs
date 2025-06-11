@@ -5,8 +5,8 @@ from typing import Any, Dict, Optional
 
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.dispatcher import async_dispatcher_send
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers import config_validation as cv
 
 # Import const first to ensure DOMAIN is defined
@@ -18,6 +18,8 @@ DEFAULT_MULTICAST_GROUP = "239.255.90.67"
 DEFAULT_MULTICAST_PORT = 5110
 DEFAULT_UDP_PORT = 5108
 DEFAULT_DISCOVERY_TIMEOUT = 30
+
+_LOGGER = logging.getLogger(__name__)
 
 # Configuration schema for YAML-based configuration
 CONFIG_SCHEMA = vol.Schema({
