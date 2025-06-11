@@ -95,9 +95,10 @@ class ZenControlConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
             description="Add ZenControllers to your network",
             last_step=False,
-            step_id="controller_config",
-            data_schema=data_schema,
-            errors=errors,
+            # REMOVE THE DUPLICATE PARAMETERS BELOW:
+            # step_id="controller_config",  # <-- DUPLICATE
+            # data_schema=data_schema,      # <-- DUPLICATE
+            # errors=errors,                # <-- DUPLICATE
             extra_action="add_another",
             extra_action_text="Add Another Controller"
         )
