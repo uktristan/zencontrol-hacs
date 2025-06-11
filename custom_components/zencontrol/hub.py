@@ -3,7 +3,8 @@ import logging
 import json
 from typing import Dict, Optional
 
-from homeassistant.core import HomeAssistant, callback, ConfigEntry
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.config_entries import ConfigEntry  # CORRECTED IMPORT
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from .const import DOMAIN
