@@ -61,47 +61,43 @@ class ZenControlConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         )
     
     async def async_step_controller_config(self, user_input=None) -> FlowResult:
-        """Add or configure ZenControllers."""
-        errors = {}
+    """Add or configure ZenControllers."""
+    errors = {}
+    
+    if user_input is not None:
+        # Add new controller
+        controller_id = user_input["controller_id"]
+        ip_address = user_input["ip_address"]
         
-        if user_input is not None:
-            # Add new controller
-            controller_id = user_input["controller_id"]
-            ip_address = user_input["ip_address"]
-            
-            # Validate IP address
-            if not await self._validate_ip(ip_address):
-                errors["base"] = "invalid_ip"
-            else:
-                self.controller_data[controller_id] = {
-                    "ip_address": ip_address,
-                    "name": user_input.get("name", f"ZenController {controller_id}"),
-                    "discovery_enabled": user_input.get("discovery_enabled", True)
-                }
-            
-        # Prepare form
-        controllers_list = [f"{cid} - {data['ip_address']}" for cid, data in self.controller_data.items()]
-        
-        data_schema = vol.Schema({
-            vol.Required("controller_id"): str,
-            vol.Required("ip_address"): str,
-            vol.Optional("name"): str,
-            vol.Optional("discovery_enabled", default=True): bool
-        })
-        
-        return self.async_show_form(
-            step_id="controller_config",
-            data_schema=data_schema,
-            errors=errors,
-            description="Add ZenControllers to your network",
-            last_step=False,
-            # REMOVE THE DUPLICATE PARAMETERS BELOW:
-            # step_id="controller_config",  # <-- DUPLICATE
-            # data_schema=data_schema,      # <-- DUPLICATE
-            # errors=errors,                # <-- DUPLICATE
-            extra_action="add_another",
-            extra_action_text="Add Another Controller"
-        )
+        # Validate IP address
+        if not await self._validate_ip(ip_address):
+            errors["base"] = "invalid_ip"
+        else:
+            self.controller_data[controller_id] = {
+                "ip_address": ip_address,
+                "name": user_input.get("name", f"ZenController {controller_id}"),
+                "discovery_enabled": user_input.get("discovery_enabled", True)
+            }
+    
+    # Prepare form
+    data_schema = vol.Schema({
+        vol.Required("controller_id"): str,
+        vol.Required("ip_address"): str,
+        vol.Optional("name"): str,
+        vol.Optional("discovery_enabled", default=True): bool
+    })
+    
+    return self.async_show_form(
+        step_id="controller_config",
+        data_schema=data_schema,
+        errors=errors,
+        description_placeholders={
+            "docs_url": "https://github.com/your-org/zencontrol-homeassistant"
+        },
+        last_step=False,
+        extra_action="add_another",
+        extra_action_text="Add Another Controller"
+    )
     
     async def async_step_add_another(self, user_input=None) -> FlowResult:
         """Handle 'Add Another' action."""
