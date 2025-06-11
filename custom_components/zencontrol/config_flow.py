@@ -63,12 +63,12 @@ class ZenControlConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_controller_config(self, user_input=None) -> FlowResult:
         """Add or configure ZenControllers."""
         errors = {}
-        
+
         if user_input is not None:
             # Add new controller
             controller_id = user_input["controller_id"]
             ip_address = user_input["ip_address"]
-            
+
             # Validate IP address
             if not await self._validate_ip(ip_address):
                 errors["base"] = "invalid_ip"
@@ -78,23 +78,31 @@ class ZenControlConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     "name": user_input.get("name", f"ZenController {controller_id}"),
                     "discovery_enabled": user_input.get("discovery_enabled", True)
                 }
-        
-        # Prepare form
+
+                # Check if user wants to add another controller
+                if user_input.get("add_another", False):
+                    # Clear any errors and show form again
+                    return await self.async_step_controller_config()
+                
+                # Otherwise proceed to finish
+                return await self.async_step_finish()
+
+        # Prepare form with "Add another" option
         data_schema = vol.Schema({
             vol.Required("controller_id"): str,
             vol.Required("ip_address"): str,
             vol.Optional("name"): str,
-            vol.Optional("discovery_enabled", default=True): bool
+            vol.Optional("discovery_enabled", default=True): bool,
+            vol.Optional("add_another", default=False): bool
         })
-        
+
         return self.async_show_form(
             step_id="controller_config",
             data_schema=data_schema,
             errors=errors,
             description_placeholders={
                 "docs_url": "https://github.com/your-org/zencontrol-homeassistant"
-            },
-            last_step=False
+            }
         )
     
     async def async_step_add_another(self, user_input=None) -> FlowResult:
