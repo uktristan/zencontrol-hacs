@@ -2,6 +2,7 @@ import asyncio
 import logging
 from typing import Dict, List, Optional
 from homeassistant.core import HomeAssistant
+from .devices import ZenDevice
 
 _LOGGER = logging.getLogger(__name__)
 
