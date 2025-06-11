@@ -192,3 +192,30 @@ async def _register_services(hass: HomeAssistant, hub: "ZenControlHub", entry: C
     hass.services.async_register(
         DOMAIN, "assign_scene", handle_assign_scene
     )
+
+    async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+        """Migrate old entry."""
+        _LOGGER.debug("Migrating from version %s", config_entry.version)
+        
+        if config_entry.version == 1:
+            # Migrate from version 1 (single controller) to version 2 (multi-controller)
+            new_data = {
+                "network": {
+                    "multicast_group": config_entry.data.get("multicast_group", DEFAULT_MULTICAST_GROUP),
+                    "multicast_port": config_entry.data.get("multicast_port", DEFAULT_MULTICAST_PORT),
+                    "udp_port": config_entry.data.get("udp_port", DEFAULT_UDP_PORT)
+                },
+                "controllers": {
+                    "zc-main": {
+                        "ip_address": config_entry.data.get("controller_ip", "192.168.1.100"),
+                        "name": "Main Controller",
+                        "discovery_enabled": True
+                    }
+                }
+            }
+            
+            config_entry.version = 2
+            hass.config_entries.async_update_entry(config_entry, data=new_data)
+            _LOGGER.info("Migration to version 2 successful")
+        
+        return True
