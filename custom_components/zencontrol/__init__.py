@@ -10,8 +10,10 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers import config_validation as cv
 
 # Import const first to ensure DOMAIN is defined
-from .const import DOMAIN
+from .const import DOMAIN, DEFAULT_MULTICAST_GROUP, DEFAULT_MULTICAST_PORT, DEFAULT_UDP_PORT, DEFAULT_DISCOVERY_TIMEOUT
 from .config_flow import ZenControlConfigFlow
+from .hub import ZenControlHub, DISCOVERY_SIGNAL
+from .discovery_manager import DiscoveryManager
 
 # Default values moved to const
 DEFAULT_MULTICAST_GROUP = "239.255.90.67"
@@ -55,33 +57,8 @@ async def async_setup(hass: HomeAssistant, config: Dict[str, Any]) -> bool:
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up ZenControl from a config entry."""
-    # Import the rest of the components here to avoid circular imports
-    from .discovery_manager import DiscoveryManager, DISCOVERY_SIGNAL
-    from .device_abstraction.comms.udp_protocol import ZenUDPProtocol
-    from .device_abstraction.comms.multicast_protocol import ZenMulticastProtocol
-    from .device_abstraction.controller import ZenControllerRegistry, ZenController
-    from .device_abstraction.devices import ZenDevice, ZenLight, ZenSwitch, ZenSensor
-    from .hub import ZenControlHub
-    
-    # Validate multicast address first
-    multicast_group = entry.data.get("multicast_group", DEFAULT_MULTICAST_GROUP)
-    if not await ZenControlConfigFlow._validate_multicast(multicast_group):
-        _LOGGER.error("Invalid multicast group in config: %s", multicast_group)
-        return False
-        
-    # Get configuration from entry
-    multicast_port = entry.data.get("multicast_port", DEFAULT_MULTICAST_PORT)
-    udp_port = entry.data.get("udp_port", DEFAULT_UDP_PORT)
-    discovery_timeout = entry.options.get("discovery_timeout", DEFAULT_DISCOVERY_TIMEOUT)
-    
-    # Create hub instance
-    hub = ZenControlHub(
-        hass,
-        multicast_group=multicast_group,
-        multicast_port=multicast_port,
-        udp_port=udp_port,
-        discovery_timeout=discovery_timeout
-    )
+    # Create hub instance with config entry
+    hub = ZenControlHub(hass, entry)
     
     # Start communication layers
     try:
@@ -121,11 +98,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         asyncio.create_task(hub.controller_watchdog())
     )
     
-    # Trigger initial discovery
+    # Trigger initial discovery for controllers with discovery enabled
     await hub.discovery_manager.start_discovery(user_initiated=False)
     
     # Log successful setup
-    _LOGGER.info("ZenControl integration setup complete")
+    _LOGGER.info("ZenControl integration setup complete with %d controllers", 
+                 len(hub.registry.controllers))
     return True
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

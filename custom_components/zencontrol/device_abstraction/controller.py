@@ -11,45 +11,36 @@ class ZenControllerRegistry:
     def __init__(self):
         self.controllers: Dict[str, ZenController] = {}
         
-    def add_controller(self, uid: str, ip: str) -> "ZenController":
+    def add_controller(self, uid: str, ip: str, name: Optional[str] = None) -> "ZenController":
         """Add or update a controller in the registry."""
         if uid not in self.controllers:
-            self.controllers[uid] = ZenController(uid, ip)
-            _LOGGER.info("Discovered controller %s (%s)", uid, ip)
+            self.controllers[uid] = ZenController(uid, ip, name)
+            _LOGGER.info("Added controller %s (%s)", name or uid, ip)
         else:
-            # Update IP if changed
-            if self.controllers[uid].ip != ip:
+            # Update existing controller
+            controller = self.controllers[uid]
+            if controller.ip != ip:
                 _LOGGER.info("Controller %s IP changed from %s to %s", 
-                             uid, self.controllers[uid].ip, ip)
-                self.controllers[uid].ip = ip
+                             uid, controller.ip, ip)
+                controller.ip = ip
+            if name and controller.name != name:
+                _LOGGER.info("Controller %s name changed to %s", uid, name)
+                controller.name = name
                 
         return self.controllers[uid]
     
-    def get_controller(self, uid: str) -> Optional["ZenController"]:
-        """Get a controller by UID."""
-        return self.controllers.get(uid)
-    
-    def get_ready_controllers(self) -> List["ZenController"]:
-        """Get all ready controllers."""
-        return [c for c in self.controllers.values() if c.is_ready]
-    
-    def remove_stale_controllers(self, timeout: float = 30):
-        """Remove controllers that haven't been seen within timeout."""
-        now = asyncio.get_event_loop().time()
-        stale = [uid for uid, c in self.controllers.items() 
-                 if now - c.last_seen > timeout]
-        for uid in stale:
-            _LOGGER.warning("Removing stale controller %s", uid)
-            del self.controllers[uid]
+    # ... rest of the class ...
 
 class ZenController:
     """Representation of a ZenControl appliance."""
     
-    def __init__(self, uid: str, ip: str, hass: Optional[HomeAssistant] = None):
+    def __init__(self, uid: str, ip: str, name: Optional[str] = None, hass: Optional[HomeAssistant] = None):
         self.uid = uid
         self.ip = ip
+        self.name = name or uid
         self.hass = hass
         self.is_ready = False
+        self.discovery_enabled = True  # Default to enabled
         self.last_seen = asyncio.get_event_loop().time()
         self.devices: Dict[str, ZenDevice] = {}
         

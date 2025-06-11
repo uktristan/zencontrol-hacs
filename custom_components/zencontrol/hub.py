@@ -1,18 +1,17 @@
 import asyncio
 import logging
 import json
-from typing import Dict, Optional, Callable, Any
+from typing import Dict, Optional
 
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant, callback, ConfigEntry
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
+from .const import DOMAIN
 from .device_abstraction.comms.udp_protocol import ZenUDPProtocol
 from .device_abstraction.comms.multicast_protocol import ZenMulticastProtocol
 from .device_abstraction.controller import ZenControllerRegistry, ZenController
 from .device_abstraction.devices import ZenDevice, ZenLight, ZenSwitch, ZenSensor
 from .discovery_manager import DISCOVERY_SIGNAL
-
-from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,16 +21,19 @@ class ZenControlHub:
     def __init__(
         self,
         hass: HomeAssistant,
-        multicast_group: str,
-        multicast_port: int,
-        udp_port: int,
-        discovery_timeout: int
+        config_entry: ConfigEntry
     ):
         self.hass = hass
-        self.multicast_group = multicast_group
-        self.multicast_port = multicast_port
-        self.udp_port = udp_port
-        self.discovery_timeout = discovery_timeout
+        self.config_entry = config_entry
+        
+        # Get network settings
+        network_settings = config_entry.data["network"]
+        self.multicast_group = network_settings["multicast_group"]
+        self.multicast_port = network_settings["multicast_port"]
+        self.udp_port = network_settings["udp_port"]
+        
+        # Get controller configuration
+        self.controllers_config = config_entry.data["controllers"]
         
         # Communication protocols
         self.udp = ZenUDPProtocol(self.udp_port)
@@ -44,6 +46,24 @@ class ZenControlHub:
         
         # Register multicast listeners
         self.multicast.add_listener(self.handle_multicast_event)
+        
+        # Add configured controllers
+        self._add_configured_controllers()
+        
+    def _add_configured_controllers(self):
+        """Add controllers from configuration."""
+        for controller_id, config in self.controllers_config.items():
+            ip_address = config["ip_address"]
+            name = config.get("name", controller_id)
+            discovery_enabled = config.get("discovery_enabled", True)
+            
+            controller = self.registry.add_controller(controller_id, ip_address, name)
+            controller.discovery_enabled = discovery_enabled
+            
+            if discovery_enabled:
+                _LOGGER.info("Added controller %s (%s) with discovery enabled", name, ip_address)
+            else:
+                _LOGGER.info("Added controller %s (%s) with discovery disabled", name, ip_address)
         
     async def start(self):
         """Start communication layers."""
