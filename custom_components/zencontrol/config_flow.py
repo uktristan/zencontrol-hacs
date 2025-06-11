@@ -277,7 +277,8 @@ class ZenControlOptionsFlow(config_entries.OptionsFlow):
             }),
             errors=errors,
             description=f"Editing controller: {controller_id}",
-            step_id="edit_controller",
+            # REMOVE THE DUPLICATE PARAMETERS BELOW:
+            # step_id="edit_controller",  # <-- DUPLICATE
             last_step=False
         )
     
