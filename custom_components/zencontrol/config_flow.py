@@ -94,9 +94,7 @@ class ZenControlConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             description_placeholders={
                 "docs_url": "https://github.com/your-org/zencontrol-homeassistant"
             },
-            last_step=False,
-            extra_action="add_another",
-            extra_action_text="Add Another Controller"
+            last_step=False
         )
     
     async def async_step_add_another(self, user_input=None) -> FlowResult:
